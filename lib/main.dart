@@ -7,12 +7,12 @@ void main() {
   Client client = Client()
       .setEndpoint("https://appwrite.igportals.eu/v1")
       .setProject("nexlyv2");
-  Account account = Account(client); // Ensure account is not nullable
+  Account account = Account(client);
   runApp(MyApp(account: account));
 }
 
 class MyApp extends StatefulWidget {
-  final Account account; // Ensure account is not nullable
+  final Account account;
 
   const MyApp({Key? key, required this.account}) : super(key: key);
 
@@ -142,11 +142,8 @@ class _CreateRoomState extends State<CreateRoom> {
       } catch (e) {
         print("no sessions");
       }
-      print("a");
       await widget.account.createAnonymousSession();
-      print("b");
       await widget.account.updateName(name: nickname);
-      print("c");
       Jwt jwt = await widget.account.createJWT();
       print(jwt);
     }
