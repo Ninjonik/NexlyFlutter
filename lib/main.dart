@@ -1,20 +1,43 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart';
 import 'package:flutter/material.dart';
+import 'package:nexly/room/room.dart';
+
+import 'appwrite.dart';
+import 'home/createRoom.dart';
+import 'home/joinRoom.dart';
+
+class AppwriteProvider extends InheritedWidget {
+  final Client client;
+  final Account account;
+
+  const AppwriteProvider({
+    Key? key,
+    required this.client,
+    required this.account,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
+    return (oldWidget as AppwriteProvider) != this;
+  }
+
+  static AppwriteProvider? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppwriteProvider>();
+  }
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Client client = Client()
-      .setEndpoint("https://appwrite.igportals.eu/v1")
-      .setProject("nexlyv2");
-  Account account = Account(client);
-  runApp(MyApp(account: account));
+  runApp(AppwriteProvider(
+    client: client,
+    account: account,
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
-  final Account account;
-
-  const MyApp({Key? key, required this.account}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -29,20 +52,20 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue.shade700),
         useMaterial3: true,
       ),
-      home: MyHomePage(
+      home: const MyHomePage(
         title: 'Nexly',
-        account: widget.account, // Ensure account is not nullable
       ),
+      routes: {
+        '/room': (context) => Room(),
+      },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  final Account account; // Ensure account is not nullable
 
-  const MyHomePage({Key? key, required this.title, required this.account})
-      : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -56,8 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      CreateRoom(account: widget.account),
-      const Text("Join a room"),
+      CreateRoom(),
+      JoinRoom(),
     ];
   }
 
@@ -88,131 +111,16 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: currentPageIndex,
         destinations: const <Widget>[
           NavigationDestination(
+            selectedIcon: Badge(child: Icon(Icons.add_circle_outlined)),
             icon: Badge(child: Icon(Icons.add_circle)),
             label: 'Create a room',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.home),
+            selectedIcon: Icon(Icons.login_outlined),
             icon: Icon(Icons.login),
             label: 'Join a room',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class CreateRoom extends StatefulWidget {
-  final Account account; // Ensure account is not nullable
-
-  const CreateRoom({Key? key, required this.account}) : super(key: key);
-
-  @override
-  State<CreateRoom> createState() => _CreateRoomState();
-}
-
-class _CreateRoomState extends State<CreateRoom> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nicknameController = TextEditingController();
-  final TextEditingController _roomNameController = TextEditingController();
-  final TextEditingController _roomDescriptionController =
-      TextEditingController();
-
-  @override
-  void dispose() {
-    _nicknameController.dispose();
-    _roomNameController.dispose();
-    _roomDescriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> handleSubmit() async {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Submitting...')),
-      );
-
-      String nickname = _nicknameController.text;
-      String roomName = _roomNameController.text;
-      String roomDescription = _roomDescriptionController.text;
-
-      print("Form submitted");
-      try {
-        await widget.account.deleteSessions();
-      } catch (e) {
-        print("no sessions");
-      }
-      await widget.account.createAnonymousSession();
-      await widget.account.updateName(name: nickname);
-      Jwt jwt = await widget.account.createJWT();
-      print(jwt);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('images/nexly.png', width: 200, height: 200),
-                const Text("Create a room", style: TextStyle(fontSize: 30)),
-                const SizedBox(height: 30),
-                TextFormField(
-                  controller: _nicknameController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Nickname',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your nickname';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-                TextFormField(
-                  controller: _roomNameController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Room\'s name',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the room\'s name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-                TextFormField(
-                  controller: _roomDescriptionController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Room\'s description',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a description for the room';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: handleSubmit,
-                  child: const Text("Create a new room"),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
