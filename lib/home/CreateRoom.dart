@@ -111,12 +111,6 @@ class _CreateRoomState extends State<CreateRoom> {
                   onPressed: handleSubmit,
                   child: const Text("Create a new room"),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/room');
-                  },
-                  child: const Text("Room Test"),
-                ),
               ],
             ),
           ),

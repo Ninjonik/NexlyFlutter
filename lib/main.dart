@@ -1,10 +1,10 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
-import 'package:nexly/room/room.dart';
+import 'package:nexly/room/RoomWidget.dart';
 
 import 'appwrite.dart';
-import 'home/createRoom.dart';
-import 'home/joinRoom.dart';
+import 'home/CreateRoom.dart';
+import 'home/JoinRoom.dart';
 
 class AppwriteProvider extends InheritedWidget {
   final Client client;
@@ -56,7 +56,10 @@ class _MyAppState extends State<MyApp> {
         title: 'Nexly',
       ),
       routes: {
-        '/room': (context) => Room(),
+        '/room': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as String;
+          return RoomWidget(roomCode: args);
+        },
       },
     );
   }

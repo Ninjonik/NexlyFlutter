@@ -105,6 +105,7 @@ class _JoinRoomState extends State<JoinRoom> {
 
         if (joinRoomResponse.statusCode == 200) {
           // Room has been successfully joined
+          Navigator.pushNamed(context, '/room', arguments: roomCode);
         } else {
           if (mounted) {
             scaffoldMessenger.showSnackBar(
