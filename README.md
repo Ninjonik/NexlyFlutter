@@ -1,4 +1,4 @@
-# nexlyflut
+# nexly
 
 A new Flutter project.
 
